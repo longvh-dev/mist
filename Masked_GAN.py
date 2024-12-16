@@ -210,6 +210,11 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint')
     
+    parser.add_argument('--train_dir', type=str, default='../copyrights/data/imagenet', help='Train directory')
+    parser.add_argument('--eval_dir', type=str, default='../copyrights/data/imagenet', help='Eval directory')
+    parser.add_argument('--train_classes', type=str, default='../copyrights/data/imagenet/train_classes_2.csv', help='Train classes')
+    parser.add_argument('--eval_classes', type=str, default='../copyrights/data/imagenet/eval_classes_2.csv', help='Eval classes')
+    
     args = parser.parse_args()
     # args.checkpoint = "../copyrights/checkpoints/dank-base/20241215-132524/checkpoint_epoch_0.pth"
     print(args)
@@ -237,8 +242,8 @@ if __name__ == "__main__":
     net.eval()
     ### 
     
-    train_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/train_classes_2.csv', batch_size=args.batch_size)
-    eval_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/eval_classes_2.csv', batch_size=args.batch_size)
+    train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size)
+    eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size)
     
     gan_attack = GANAttack(net, 3, device, 0, 1, args)
     gan_attack.train(train_dataloaders, eval_dataloaders)
