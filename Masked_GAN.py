@@ -230,8 +230,8 @@ if __name__ == "__main__":
     net.eval()
     ### 
     
-    train_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/train_classes_1.csv', batch_size=args.batch_size)
-    eval_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/train_classes.csv', batch_size=args.batch_size)
+    train_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/train_classes_2.csv', batch_size=args.batch_size)
+    eval_dataloaders, _ = create_dataloader('/home/pdlong/copyrights/data/imagenet', '/home/pdlong/copyrights/data/imagenet/eval_classes_2.csv', batch_size=args.batch_size)
     
     gan_attack = GANAttack(net, 3, device, 0, 1, args)
     gan_attack.train(train_dataloaders, eval_dataloaders)
