@@ -243,7 +243,7 @@ if __name__ == "__main__":
     fn = nn.MSELoss(reduction="sum")
 
     input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
-    net = target_model(model, input_prompt, mode=0, rate=10000, device=device)
+    net = target_model(model, input_prompt, mode=1, rate=10000, device=device)
     net.eval()
     ### 
     
