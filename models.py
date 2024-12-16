@@ -145,14 +145,14 @@ class target_model(nn.Module):
             processed_x[p] = trans(x[p])
         return processed_x
 
-    def forward(self, x, components=False):
+    def forward(self, x, target_info=None, components=False):
         """
         Compute the loss based on different mode.
         The textural loss shows the distance between the input image and target image in latent space.
         The semantic loss describles the semantic content of the image.
         :return: The loss used for updating gradient in the adversarial attack.
         """
-
+        self.target_info = target_info if target_info is not None else self.target_info
         zx, loss_semantic = self.get_components(x, True)
         zy, _ = self.get_components(self.target_info, True)
         if self.mode != 1:
