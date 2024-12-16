@@ -12,58 +12,15 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from pytorch_lightning import seed_everything
 
-from ldm.util import instantiate_from_config
-
 from Masked_PGD import LinfPGDAttack
 from models import target_model
-from mist_utils import parse_args, load_mask, closing_resize, load_image_from_path
+from mist_utils import parse_args, load_mask, closing_resize, load_image_from_path, load_model_from_config
 
 
 ssl._create_default_https_context = ssl._create_unverified_context
 os.environ['TORCH_HOME'] = os.getcwd()
 os.environ['HF_HOME'] = os.path.join(os.getcwd(), 'hub/')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-
-def load_model_from_config(config, ckpt, verbose: bool = True):
-    """
-    Load model from the config and the ckpt path.
-    :param config: Path of the config of the SDM model.
-    :param ckpt: Path of the weight of the SDM model
-    :param verbose: Whether to show the unused parameters weight.
-    :returns: A SDM model.
-    """
-    print(f"Loading model from {ckpt}")
-
-    pl_sd = torch.load(ckpt, map_location="cpu")
-    if "global_step" in pl_sd:
-        print(f"Global Step: {pl_sd['global_step']}")
-    sd = pl_sd["state_dict"]
-
-    # Support loading weight from NovelAI
-    if "state_dict" in sd:
-        import copy
-        sd_copy = copy.deepcopy(sd)
-        for key in sd.keys():
-            if key.startswith('cond_stage_model.transformer') and not key.startswith('cond_stage_model.transformer.text_model'):
-                newkey = key.replace('cond_stage_model.transformer', 'cond_stage_model.transformer.text_model', 1)
-                sd_copy[newkey] = sd[key]
-                del sd_copy[key]
-        sd = sd_copy
-
-    model = instantiate_from_config(config.model)
-    m, u = model.load_state_dict(sd, strict=False)
-
-    if len(m) > 0 and verbose:
-        print("missing keys:")
-        print(m)
-    if len(u) > 0 and verbose:
-        print("unexpected keys:")
-        print(u)
-
-    model.to(device)
-    model.eval()
-    return model
 
 
 class identity_loss(nn.Module):
