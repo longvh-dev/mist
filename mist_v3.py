@@ -15,6 +15,7 @@ from pytorch_lightning import seed_everything
 from ldm.util import instantiate_from_config
 
 from Masked_PGD import LinfPGDAttack
+from models import target_model
 from mist_utils import parse_args, load_mask, closing_resize, load_image_from_path
 
 
@@ -24,7 +25,7 @@ os.environ['HF_HOME'] = os.path.join(os.getcwd(), 'hub/')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def load_model_from_config(config, ckpt, verbose: bool = False):
+def load_model_from_config(config, ckpt, verbose: bool = True):
     """
     Load model from the config and the ckpt path.
     :param config: Path of the config of the SDM model.
@@ -78,77 +79,6 @@ class identity_loss(nn.Module):
         return x
 
 
-class target_model(nn.Module):
-    """
-    A virtual model which computes the semantic and textural loss in forward function.
-    """
-
-    def __init__(self, model,
-                 condition: str,
-                 target_info: str = None,
-                 mode: int = 2,
-                 rate: int = 10000,
-                 input_size = 512):
-        """
-        :param model: A SDM model.
-        :param condition: The condition for computing the semantic loss.
-        :param target_info: The target textural for textural loss.
-        :param mode: The mode for computation of the loss. 0: semantic; 1: textural; 2: fused
-        :param rate: The fusion weight. Higher rate refers to more emphasis on semantic loss.
-        """
-        super().__init__()
-        self.model = model
-        self.condition = condition
-        self.fn = nn.MSELoss(reduction="sum")
-        self.target_info = target_info
-        self.mode = mode
-        self.rate = rate
-        self.target_size = input_size
-
-    def get_components(self, x, no_loss=False):
-        """
-        Compute the semantic loss and the encoded information of the input.
-        :return: encoded info of x, semantic loss
-        """
-
-        z = self.model.get_first_stage_encoding(self.model.encode_first_stage(x)).to(device)
-        c = self.model.get_learned_conditioning(self.condition)
-        if no_loss:
-            loss = 0
-        else:
-            loss = self.model(z, c)[0]
-        return z, loss
-
-    def pre_process(self, x, target_size):
-        processed_x = torch.zeros([x.shape[0], x.shape[1], target_size, target_size]).to(device)
-        trans = transforms.RandomCrop(target_size)
-        for p in range(x.shape[0]):
-            processed_x[p] = trans(x[p])
-        return processed_x
-
-    def forward(self, x, components=False):
-        """
-        Compute the loss based on different mode.
-        The textural loss shows the distance between the input image and target image in latent space.
-        The semantic loss describles the semantic content of the image.
-        :return: The loss used for updating gradient in the adversarial attack.
-        """
-
-        zx, loss_semantic = self.get_components(x, True)
-        zy, _ = self.get_components(self.target_info, True)
-        if self.mode != 1:
-            _, loss_semantic = self.get_components(self.pre_process(x, self.target_size))
-        if components:
-            return self.fn(zx, zy), loss_semantic
-        if self.mode == 0:
-            return - loss_semantic
-        elif self.mode == 1:
-
-            return self.fn(zx, zy)
-        else:
-            return self.fn(zx, zy) - loss_semantic * self.rate
-
-
 def init(epsilon: int = 16, steps: int = 100, alpha: int = 1,
          input_size: int = 512, object: bool = False, seed: int = 23,
          ckpt: str = None, base: str = None, mode: int = 2, rate: int = 10000):
@@ -168,7 +98,7 @@ def init(epsilon: int = 16, steps: int = 100, alpha: int = 1,
     """
 
     if ckpt is None:
-        ckpt = 'models/ldm/stable-diffusion-v1/model.ckpt'
+        ckpt = 'models/ldm/stable-diffusion-v1-4/model.ckpt'
 
     if base is None:
         base = 'configs/stable-diffusion/v1-inference-attack.yaml'
@@ -191,7 +121,7 @@ def init(epsilon: int = 16, steps: int = 100, alpha: int = 1,
         imagenet_templates_small = imagenet_templates_small_style
 
     input_prompt = [imagenet_templates_small[0] for i in range(1)]
-    net = target_model(model, input_prompt, mode=mode, rate=rate)
+    net = target_model(model, input_prompt, mode=mode, rate=rate, device=device)
     net.eval()
 
     # parameter
