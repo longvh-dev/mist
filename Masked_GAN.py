@@ -53,8 +53,12 @@ class GANAttack:
         self.netG = Generator(image_nc).to(self.device)
         self.netD = Discriminator(image_nc).to(self.device)
         
-        self.netG.apply(weights_init)
-        self.netD.apply(weights_init)
+        if self.config.checkpoint:
+            checkpoint = torch.load(self.config.checkpoint)
+            self.netG.load_state_dict(checkpoint['generator_state_dict'])
+        else:
+            self.netG.apply(weights_init)
+            self.netD.apply(weights_init)
         
         self.optimizerG = torch.optim.Adam(self.netG.parameters(), lr=self.config.lr)
         self.optimizerD = torch.optim.Adam(self.netD.parameters(), lr=self.config.lr)
