@@ -13,6 +13,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
+# import seed_everything
+from pytorch_lightning.utilities.seed import seed_everything
 
 from models import Generator, Discriminator, target_model
 from evaluate import evaluate_adversarial_quality
@@ -209,6 +211,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_epochs', type=int, default=200, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint')
+    parser.add_argument('--seed', type=int, default=42, help='Seed')
     
     parser.add_argument('--train_dir', type=str, default='../copyrights/data/imagenet', help='Train directory')
     parser.add_argument('--eval_dir', type=str, default='../copyrights/data/imagenet', help='Eval directory')
@@ -218,6 +221,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # args.checkpoint = "../copyrights/checkpoints/dank-base/20241215-132524/checkpoint_epoch_0.pth"
     print(args)
+    
+    seed_everything(args.seed)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
