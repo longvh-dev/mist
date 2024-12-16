@@ -131,17 +131,17 @@ def infer(img: PIL.Image.Image, config, tar_img: PIL.Image.Image = None, mask: P
     # target_info = torch.zeros([1, 3, input_size, input_size]).to(device)
     target_info = torch.zeros([1, 3, img.shape[0], img.shape[1]]).to(device)
     target_info[0] = trans(tar_img).to(device)
-    net.target_info = target_info
+    # net.target_info = target_info
     net.target_size = input_size
     net.mode = mode
     net.rate = rate
     label = torch.zeros(data_source.shape).to(device)
-    print(net(data_source, components=True))
+    print(net(data_source, target_info, components=True))
 
     # Targeted PGD attack is applied.
     attack = LinfPGDAttack(net, fn, epsilon, steps, eps_iter=alpha, clip_min=-1.0, targeted=True)
     attack_output = attack.perturb(data_source, label, mask=mask)
-    print(net(attack_output, components=True))
+    print(net(attack_output, target_info, components=True))
 
     output = attack_output[0]
     save_adv = torch.clamp((output + 1.0) / 2.0, min=0.0, max=1.0).detach()
