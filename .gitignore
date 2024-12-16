@@ -22,6 +22,9 @@ outputs/dirs/*/*.png
 outputs/images/*.png
 outputs/images/*.jpg
 outputs/images/backup
+outputs/adv/
+logs.log
+*.log
 models/
 misted_*.png
 *.bin
