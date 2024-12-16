@@ -207,6 +207,7 @@ if __name__ == "__main__":
     parser.add_argument('--watermark_region', type=float, default=4.0, help='Watermark region')
     parser.add_argument('--num_epochs', type=int, default=200, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
+    parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint')
     
     args = parser.parse_args()
     # args.checkpoint = "../copyrights/checkpoints/dank-base/20241215-132524/checkpoint_epoch_0.pth"
