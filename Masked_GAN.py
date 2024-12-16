@@ -209,6 +209,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     
     args = parser.parse_args()
+    # args.checkpoint = "../copyrights/checkpoints/dank-base/20241215-132524/checkpoint_epoch_0.pth"
     print(args)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
