@@ -98,9 +98,10 @@ class GANAttack:
             loss_G_fake.backward(retain_graph=True)
 
             # Adversarial Loss
-            z_adv_images, _ = self.target_model.get_components(adv_images, True)
-            z_watermark, _ = self.target_model.get_components(watermark, True)
-            loss_adv = torch.norm(l2norm(z_adv_images) - l2norm(z_watermark), p=2, dim=1).mean()
+            # z_adv_images, _ = self.target_model.get_components(adv_images, True)
+            # z_watermark, _ = self.target_model.get_components(watermark, True)
+            # loss_adv = torch.norm(l2norm(z_adv_images) - l2norm(z_watermark), p=2, dim=1).mean()
+            loss_adv = self.target_model(adv_images, watermark)
             
             # Perturbation Loss
             weighted_perturbation = perturbation * (1 + watermark * self.config.watermark_region)
