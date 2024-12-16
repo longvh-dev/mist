@@ -1,3 +1,4 @@
+LICENSE
 setup.py
 latent_diffusion.egg-info/PKG-INFO
 latent_diffusion.egg-info/SOURCES.txt
