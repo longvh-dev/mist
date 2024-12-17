@@ -166,3 +166,46 @@ class target_model(nn.Module):
             return self.fn(zx, zy)
         else:
             return self.fn(zx, zy) - loss_semantic * self.rate
+
+
+class DiffusionTargetModel(nn.Module):
+    """
+    A virtual model which computes the textural loss in forward function.
+    """
+
+    def __init__(self, 
+                 model,
+                 target_info: str = None,
+                 input_size = 512,
+                 device = 'cuda'):
+        """
+        :param model: A SDM model.
+        :param target_info: The target textural for textural loss.
+        """
+        super().__init__()
+        self.model = model
+        self.fn = nn.MSELoss(reduction="mean")
+        self.target_info = target_info
+        self.target_size = input_size
+        self.device = device
+
+    def get_encodings(self, x):
+        """
+        Compute the encoded information of the input.
+        :return: encoded info of x
+        """
+        z = self.model.get_first_stage_encoding(self.model.encode_first_stage(x)).to(self.device)
+
+        return z
+
+    def forward(self, x, target_info=None):
+        """
+        Compute the textural loss.
+        The textural loss shows the distance between the input image and target image in latent space.
+        """
+        self.target_info = target_info if target_info is not None else self.target_info
+        zx = self.get_encodings(x)
+        zy = self.get_encodings(self.target_info)
+        return self.fn(zx, zy)
+        
+        
