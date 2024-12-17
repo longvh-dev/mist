@@ -53,7 +53,7 @@ class GANAttack:
         self.config = config
         
         self.netG = Generator(image_nc, 64).to(self.device)
-        # print(self.netG)
+        print(self.netG)
         self.netD = Discriminator(image_nc).to(self.device)
         
         if self.config.checkpoint:
