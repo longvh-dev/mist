@@ -65,7 +65,7 @@ class GANAttack:
             self.netD.apply(weights_init)
         
         self.optimizerG = torch.optim.Adam(self.netG.parameters(), lr=self.config.lr)
-        self.optimizerD = torch.optim.Adam(self.netD.parameters(), lr=self.config.lr)
+        self.optimizerD = torch.optim.Adam(self.netD.parameters(), lr=self.config.lr*2)
         
         self.model_path = os.path.join(models_path, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
         os.makedirs(self.model_path)
