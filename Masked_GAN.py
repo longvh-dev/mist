@@ -52,7 +52,8 @@ class GANAttack:
         self.box_max = box_max
         self.config = config
         
-        self.netG = Generator(image_nc).to(self.device)
+        self.netG = Generator(image_nc, 64).to(self.device)
+        print(self.netG)
         self.netD = Discriminator(image_nc).to(self.device)
         
         if self.config.checkpoint:
