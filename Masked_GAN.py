@@ -134,7 +134,10 @@ class GANAttack:
             self.netG.train()
             self.netD.train()
             
-            if epoch == 40:
+            if epoch == 50:
+                self.optimizerG.param_groups[0]['lr'] /= 10
+                self.optimizerD.param_groups[0]['lr'] /= 10
+            if epoch == 100:
                 self.optimizerG.param_groups[0]['lr'] /= 10
                 self.optimizerD.param_groups[0]['lr'] /= 10
             
