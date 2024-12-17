@@ -19,42 +19,42 @@ class ResidualBlock(nn.Module):
         return x + residual
 
 class Generator(nn.Module):
-    def __init__(self, input_channels=3):
+    def __init__(self, input_channels=3, base_channels=16):
         super().__init__()
         self.encoders = nn.Sequential(
-            nn.Conv2d(input_channels * 2, 64, kernel_size=3, stride=2, padding=1),
-            nn.InstanceNorm2d(64),
+            nn.Conv2d(input_channels * 2, base_channels, kernel_size=3, stride=2, padding=1),
+            nn.InstanceNorm2d(base_channels),
             nn.ReLU(inplace=True),
-            # state size. 64 x 256 x 256
-            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
-            nn.InstanceNorm2d(128),
+            # state size. base_channels x W/2 x H/2
+            nn.Conv2d(base_channels, base_channels * 2, kernel_size=3, stride=2, padding=1),
+            nn.InstanceNorm2d(base_channels * 2),
             nn.ReLU(inplace=True),
-            # state size. 128 x 128 x 128
-            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
-            nn.InstanceNorm2d(256),
+            # state size. base_channels*2 x W/4 x H/4
+            nn.Conv2d(base_channels * 2, base_channels * 4, kernel_size=3, stride=2, padding=1),
+            nn.InstanceNorm2d(base_channels * 4),
             nn.ReLU(inplace=True),
-            # state size. 256 x 64 x 64
+            # state size. base_channels*4 x W/8 x H/8
         )
         
-        self.residual_blocks = nn.Sequential(*[ResidualBlock(256) for _ in range(4)])
+        self.residual_blocks = nn.Sequential(*[ResidualBlock(base_channels * 4) for _ in range(4)])
         
         self.decoders = nn.Sequential(
-            nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.InstanceNorm2d(128),
+            nn.ConvTranspose2d(base_channels * 4, base_channels * 2, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.InstanceNorm2d(base_channels * 2),
             nn.ReLU(inplace=True),
-            # state size. 128 x 64 x 64
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.InstanceNorm2d(64),
+            # state size. base_channels*2 x W/4 x H/4
+            nn.ConvTranspose2d(base_channels * 2, base_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.InstanceNorm2d(base_channels),
             nn.ReLU(inplace=True),
-            # state size. 64 x 128 x 128
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.InstanceNorm2d(32),
+            # state size. base_channels x W/2 x H/2
+            nn.ConvTranspose2d(base_channels, base_channels//2, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.InstanceNorm2d(base_channels//2),
             nn.ReLU(inplace=True),
-            # state size. 32 x 256 x 256
+            # state size. base_channels/2 x W x H
         )
 
         self.final = nn.Sequential(
-            nn.Conv2d(32, input_channels, 3, 1, 1),
+            nn.Conv2d(base_channels//2, input_channels, 3, 1, 1),
             nn.Tanh()
         )
     
@@ -117,7 +117,7 @@ class target_model(nn.Module):
         super().__init__()
         self.model = model
         self.condition = condition
-        self.fn = nn.MSELoss(reduction="sum")
+        self.fn = nn.MSELoss(reduction="mean")
         self.target_info = target_info
         self.mode = mode
         self.rate = rate
@@ -162,7 +162,7 @@ class target_model(nn.Module):
         if self.mode == 0:
             return - loss_semantic
         elif self.mode == 1:
-
+            # L2 loss between the input and target image in latent space.
             return self.fn(zx, zy)
         else:
             return self.fn(zx, zy) - loss_semantic * self.rate
