@@ -172,7 +172,7 @@ class GANAttack:
                 torch.save(self.netG.state_dict(), os.path.join(self.model_path, f'netG_{epoch}.pth'))
                 # torch.save(self.netD.state_dict(), os.path.join(self.model_path, f'netD_{epoch}.pth'))
                 
-                
+            torch.cuda.empty_cache()    
             ### eval 
             self.netG.eval()
             # test_image = Image.open('test/sample.png').convert('RGB')
@@ -197,6 +197,7 @@ class GANAttack:
             save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
             save_tensor_image(diffusion_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion.png'))
             
+            torch.cuda.empty_cache()
 
 
         
