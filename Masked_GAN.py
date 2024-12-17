@@ -59,7 +59,7 @@ class GANAttack:
         
         if self.config.checkpoint:
             checkpoint = torch.load(self.config.checkpoint)
-            self.netG.load_state_dict(checkpoint['generator_state_dict'])
+            self.netG.load_state_dict(checkpoint)
         else:
             self.netG.apply(weights_init)
             self.netD.apply(weights_init)
