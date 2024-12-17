@@ -20,7 +20,7 @@ def run_diffusion_model(diffusion_model, adv_image, prompt, strength=0.1):
     extra_channel = torch.zeros_like(adv_image[:, :1, :, :])  # Create a zero-filled channel
     x_T = torch.cat([adv_image, extra_channel], dim=1)
     with torch.no_grad():
-        output_image, _ = diffusion_model.sample(cond=conditioning, batch_size=1, timesteps=timesteps, x_T=x_T)
+        output_image = diffusion_model.sample(cond=conditioning, batch_size=1, timesteps=timesteps, x_T=x_T)
     return output_image
 
 def save_tensor_image(tensor, path):
