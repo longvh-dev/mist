@@ -177,8 +177,7 @@ class GANAttack:
             self.netG.eval()
             # test_image = Image.open('test/sample.png').convert('RGB')
             test_image = Image.open('../copyrights/data/imagenet/IMAGENET_CAT/n02123045_10052_n02123045.JPEG').convert('RGB')
-            test_image_size = test_image.size
-            watermark = create_watermark("IMAGENET_CAT", test_image_size).convert("RGB")
+            test_watermark = create_watermark("IMAGENET_CAT", test_image.size).convert("RGB")
             
             transform = transforms.Compose([
                 transforms.Resize((512, 512)),
@@ -186,25 +185,18 @@ class GANAttack:
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
             
-            def reverse_transform(tensor):
-                tensor = tensor * torch.tensor([0.5, 0.5, 0.5]).view(3, 1, 1) + torch.tensor([0.5, 0.5, 0.5]).view(3, 1, 1)
-                tensor = torch.clamp(tensor, 0, 1)
-                to_pil = transforms.ToPILImage()
-                image = to_pil(tensor)
-                return image
+            image = preprocess_image(test_image, transform, self.device)
+            watermark = preprocess_image(test_watermark, transform, self.device)
             
-            image = transform(test_image).unsqueeze(0).to(device)
-            watermark = transform(watermark).unsqueeze(0).to(device)
-            perturbation = self.netG(image, watermark)
-            adv_image = perturbation + image
-            adv_image_clamp = torch.clamp(perturbation, -0.3, 0.3) + image
-            adv_image_clamp = torch.clamp(adv_image_clamp, self.box_min, self.box_max)
+            adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
+            diffusion_image = run_diffusion_model(self.target_model.model, adv_image, strength=0.3)
             
-            adv_image_ = reverse_transform(adv_image[0].cpu())
-            adv_image_.save(f"outputs/adv/adv_image_epoch_{epoch}.png")
+            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
+            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
+            save_tensor_image(diffusion_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion.png'))
             
-            adv_image_clamp_ = reverse_transform(adv_image_clamp[0].cpu())
-            adv_image_clamp_.save(f"outputs/adv/adv_image_epoch_{epoch}_clamp.png")
+
+
         
 if __name__ == "__main__":
     import argparse
