@@ -2,8 +2,7 @@ import torch
 from torchvision import transforms
 from PIL import Image
 
-def preprocess_image(image_path, transform, device):
-    image = Image.open(image_path).convert("RGB")
+def preprocess_image(image, transform, device):
     image = transform(image).unsqueeze(0).to(device)  # Add batch dimension
     return image
 
