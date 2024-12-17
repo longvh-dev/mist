@@ -70,15 +70,15 @@ class Generator(nn.Module):
         return out
     
 class Discriminator(nn.Module):
-    def __init__(self, input_channels=3):
+    def __init__(self, input_channels=3, base_channels=16):
         super(Discriminator, self).__init__()
         self.model = nn.Sequential(
-            self.conv_block(input_channels, 64, normalize=False),
-            self.conv_block(64, 128),
-            self.conv_block(128, 256),
-            self.conv_block(256, 512),
-            self.conv_block(512, 1024),
-            nn.Conv2d(1024, 1, 16, 2, 0), #16*16 or 4x4?
+            self.conv_block(input_channels, base_channels, normalize=False),
+            self.conv_block(base_channels, base_channels * 2),
+            self.conv_block(base_channels * 2, base_channels * 4),
+            self.conv_block(base_channels * 4, base_channels * 8),
+            # self.conv_block(base_channels * 8, base_channels * 16),
+            nn.Conv2d(base_channels * 8, 1, 4, 1, 0),  #16*16 or 4x4?
             nn.Sigmoid()
         )
 
