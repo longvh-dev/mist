@@ -190,7 +190,7 @@ class GANAttack:
             
             adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
             
-            prompt = ['A photo']
+            prompt = 'A photo'
             diffusion_image = run_diffusion_model(self.target_model.model, adv_image, prompt, strength=0.3)
             
             save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
