@@ -44,7 +44,7 @@ def evaluate_adversarial_quality(generator, dataloader, device):
     ssim_scores = []
     
     with torch.no_grad():
-        for real_images, watermarks, _ in tqdm(dataloader, desc="Evaluating adversarial quality"):
+        for real_images, watermarks, _ in tqdm(dataloader, desc="Evaluating adversarial quality", disable=True):
             real_images = real_images.to(device)
             watermarks = watermarks.to(device)
             
