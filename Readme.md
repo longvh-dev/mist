@@ -26,8 +26,8 @@ Official Stable-diffusion-model v1.4 checkpoint is also required, available at [
 
 ```
 wget -c https://huggingface.co/CompVis/stable-diffusion-v-1-4-original/resolve/main/sd-v1-4.ckpt
-mkdir -p  models/ldm/stable-diffusion-v1
-mv sd-v1-4.ckpt models/ldm/stable-diffusion-v1/model.ckpt
+mkdir -p  models/ldm/stable-diffusion-v1-4
+mv sd-v1-4.ckpt models/ldm/stable-diffusion-v1-4/model.ckpt
 ```
 
 ## Usage
