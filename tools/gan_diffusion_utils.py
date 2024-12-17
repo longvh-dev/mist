@@ -13,10 +13,11 @@ def generate_adversarial_image(netG, image, watermark, box_min, box_max):
     adv_image_clamp = torch.clamp(adv_image_clamp, box_min, box_max)
     return adv_image, adv_image_clamp
 
-def run_diffusion_model(diffusion_model, adv_image, strength):
+def run_diffusion_model(diffusion_model, adv_image, prompt, strength=0.1):
     timesteps = int(diffusion_model.num_timesteps * strength)
+    conditioning = diffusion_model.get_learned_conditioning([prompt])
     with torch.no_grad():
-        output_image, _ = diffusion_model.sample(cond=None, batch_size=1, timesteps=timesteps, x_T=adv_image)
+        output_image, _ = diffusion_model.sample(cond=conditioning, batch_size=1, timesteps=timesteps, x_T=adv_image)
     return output_image
 
 def save_tensor_image(tensor, path):
