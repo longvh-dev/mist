@@ -74,18 +74,18 @@ class GANAttack:
             perturbation = self.netG(real_images, watermark)
             # adv_images = torch.clamp(perturbation, -0.3, 0.3) + real_images
             adv_images = perturbation + real_images
-            adv_images = torch.clamp(adv_images, self.box_min, self.box_max)
+            # adv_images = torch.clamp(adv_images, self.box_min, self.box_max)
             
             self.optimizerD.zero_grad()
             
             pred_real = self.netD(real_images)
-            real_label = torch.ones_like(pred_real, device=self.device) - 0.1
-            loss_D_real = F.binary_cross_entropy_with_logits(pred_real, real_label)
+            real_label = torch.ones_like(pred_real, device=self.device)
+            loss_D_real = nn.MSELoss(reduction="mean")(pred_real, real_label)
             loss_D_real.backward()
             
             pred_fake = self.netD(adv_images.detach())
-            fake_label = torch.zeros_like(pred_fake, device=self.device) + 0.1
-            loss_D_fake = F.binary_cross_entropy_with_logits(pred_fake, fake_label)
+            fake_label = torch.zeros_like(pred_fake, device=self.device)
+            loss_D_fake = nn.MSELoss(reduction="mean")(pred_fake, fake_label)
             loss_D_fake.backward()
             
             loss_D_GAN = loss_D_real + loss_D_fake
@@ -96,8 +96,13 @@ class GANAttack:
             self.optimizerG.zero_grad()
             
             pred_fake = self.netD(adv_images)
-            loss_G_fake = F.binary_cross_entropy_with_logits(pred_fake, torch.ones_like(pred_fake, device=self.device))
+            loss_G_fake = nn.MSELoss(reduction="mean")(pred_fake, torch.ones_like(pred_fake, device=self.device))
             loss_G_fake.backward(retain_graph=True)
+
+            # Print gradients for debugging
+            # for name, param in self.netG.named_parameters():
+            #     if param.grad is not None:
+            #         print(f"Gradients for {name}: {param.grad.norm()}")
 
             # Adversarial Loss
             # z_adv_images, _ = self.target_model.get_components(adv_images, True)
@@ -124,7 +129,7 @@ class GANAttack:
     def train(self, train_dataloaders, eval_dataloaders):
         """
         """
-        for epoch in range(self.config.num_epochs):
+        for epoch in range(self.config.num_epochs + 1):
             self.netG.train()
             self.netD.train()
             
@@ -164,7 +169,8 @@ class GANAttack:
                 
             ### eval 
             self.netG.eval()
-            test_image = Image.open('test/sample.png').convert('RGB')
+            # test_image = Image.open('test/sample.png').convert('RGB')
+            test_image = Image.open('../copyrights/data/imagenet/IMAGENET_CAT/n02123045_10052_n02123045.JPEG').convert('RGB')
             test_image_size = test_image.size
             watermark = create_watermark("IMAGENET_CAT", test_image_size).convert("RGB")
             
@@ -192,7 +198,7 @@ class GANAttack:
             perturbation = self.netG(image, watermark)
             adv_image = perturbation + image
             adv_image_clamp = torch.clamp(perturbation, -0.3, 0.3) + image
-            adv_image_clamp = torch.clamp(adv_image, 0, 1)
+            adv_image_clamp = torch.clamp(adv_image_clamp, self.box_min, self.box_max)
             
             adv_image_ = reverse_transform(adv_image[0].cpu())
             adv_image_.save(f"outputs/adv/adv_image_epoch_{epoch}.png")
@@ -250,5 +256,5 @@ if __name__ == "__main__":
     train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size)
     eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size)
     
-    gan_attack = GANAttack(net, 3, device, 0, 1, args)
+    gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
     gan_attack.train(train_dataloaders, eval_dataloaders)
