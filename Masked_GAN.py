@@ -16,7 +16,7 @@ from torchvision import transforms
 # import seed_everything
 from pytorch_lightning.utilities.seed import seed_everything
 
-from models import Generator, Discriminator, target_model
+from models import Generator, Discriminator, DiffusionTargetModel
 from evaluate import evaluate_adversarial_quality
 from mist_utils import load_model_from_config
 from data_loader import create_dataloader, create_watermark
@@ -241,9 +241,6 @@ if __name__ == "__main__":
     ckpt = 'models/ldm/stable-diffusion-v1-4/model.ckpt'
     base = 'configs/stable-diffusion/v1-inference-attack.yaml'
 
-    # imagenet_templates_small_style = ['a painting']
-    imagenet_templates_small_object = ['a photo']
-
     config_path = os.path.join(os.getcwd(), base)
     config = OmegaConf.load(config_path)
 
@@ -253,8 +250,8 @@ if __name__ == "__main__":
 
     fn = nn.MSELoss(reduction="sum")
 
-    input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
-    net = target_model(model, input_prompt, mode=1, rate=10000, device=device)
+    # input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
+    net = DiffusionTargetModel(model, device=device)
     net.eval()
     ### 
     
