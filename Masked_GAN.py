@@ -186,16 +186,10 @@ class GANAttack:
             ])
             
             def reverse_transform(tensor):
-                # Bước 1: Denormalize ảnh
                 tensor = tensor * torch.tensor([0.5, 0.5, 0.5]).view(3, 1, 1) + torch.tensor([0.5, 0.5, 0.5]).view(3, 1, 1)
-                
-                # Bước 2: Chuyển từ tensor về dạng PIL Image
                 tensor = torch.clamp(tensor, 0, 1)
-                
-                # Chuyển tensor về dạng PIL Image
                 to_pil = transforms.ToPILImage()
                 image = to_pil(tensor)
-                
                 return image
             
             image = transform(test_image).unsqueeze(0).to(device)
