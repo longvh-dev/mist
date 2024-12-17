@@ -17,7 +17,7 @@ from torchvision import transforms
 from pytorch_lightning.utilities.seed import seed_everything
 
 from models import Generator, Discriminator, DiffusionTargetModel
-from evaluate import evaluate_adversarial_quality
+from tools.evaluate import evaluate_adversarial_quality
 from mist_utils import load_model_from_config
 from data_loader import create_dataloader, create_watermark
 
