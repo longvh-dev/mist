@@ -53,6 +53,8 @@ class GANAttack:
         self.box_max = box_max
         self.config = config
         
+        self.image_size = config.image_size
+        
         self.netG = Generator(image_nc, 16).to(self.device)
         print(self.netG)
         self.netD = Discriminator(image_nc, 16).to(self.device)
@@ -180,7 +182,7 @@ class GANAttack:
             test_watermark = create_watermark("IMAGENET_CAT", test_image.size).convert("RGB")
             
             transform = transforms.Compose([
-                transforms.Resize((512, 512)),
+                transforms.Resize((self.image_size, self.image_size)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
@@ -213,6 +215,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint')
     parser.add_argument('--seed', type=int, default=42, help='Seed')
+    parser.add_argument('--image_size', type=int, default=256, help='Image size')
     
     parser.add_argument('--train_dir', type=str, default='../copyrights/data/imagenet', help='Train directory')
     parser.add_argument('--eval_dir', type=str, default='../copyrights/data/imagenet', help='Eval directory')
@@ -245,8 +248,8 @@ if __name__ == "__main__":
     net.eval()
     ### 
     
-    train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size)
-    eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size)
+    train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
+    eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
     
     gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
     gan_attack.train(train_dataloaders, eval_dataloaders)
