@@ -187,11 +187,8 @@ class GANAttack:
             #     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             # ])
             
-            # image = preprocess_image(test_image, transform, self.device)
-            # watermark = preprocess_image(test_watermark, transform, self.device)
-
-            image = preprocess_image(test_image, self.device)
-            watermark = preprocess_image(test_watermark, self.device)
+            image = preprocess_image(test_image).to(self.device)
+            watermark = preprocess_image(test_watermark).to(self.device)
             
             adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
             
@@ -257,3 +254,5 @@ if __name__ == "__main__":
     
     gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
     gan_attack.train(train_dataloaders, eval_dataloaders)
+    
+    
