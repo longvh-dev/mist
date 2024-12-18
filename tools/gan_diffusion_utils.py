@@ -61,8 +61,8 @@ class Config:
     scale: float = 5.0
     precision: str = "autocast"
 
-def run_diffusion(diffusion_model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
-    device = next(diffusion_model.parameters()).device
+def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
+    device = next(model.parameters()).device
     opt = Config()
     # update config with kwargs
     for k, v in kwargs.items():
@@ -71,7 +71,7 @@ def run_diffusion(diffusion_model, prompt, init_image, strength=0.3, ddim_steps=
     batch_size = opt.n_samples
     
 
-    sampler = DDIMSampler(diffusion_model)
+    sampler = DDIMSampler(model)
     sampler.make_schedule(ddim_num_steps=opt.ddim_steps, ddim_eta=opt.ddim_eta, verbose=False)
 
     assert 0. <= strength <= 1., 'can only work with strength in [0.0, 1.0]'
