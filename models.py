@@ -175,37 +175,52 @@ class DiffusionTargetModel(nn.Module):
 
     def __init__(self, 
                  model,
+                 condition: str,
                  target_info: str = None,
                  input_size = 512,
                  device = 'cuda'):
         """
         :param model: A SDM model.
+        :param condition: The condition for computing the semantic loss.
         :param target_info: The target textural for textural loss.
         """
         super().__init__()
         self.model = model
-        self.fn = nn.MSELoss(reduction="mean")
+        self.condition = condition
+        self.fn = self.custom_loss
         self.target_info = target_info
         self.target_size = input_size
         self.device = device
 
-    def get_encodings(self, x):
+    def get_encodings(self, x, no_loss=False):
         """
         Compute the encoded information of the input.
         :return: encoded info of x
         """
         z = self.model.get_first_stage_encoding(self.model.encode_first_stage(x)).to(self.device)
+        c = self.model.get_learned_conditioning(self.condition)
+        
+        if no_loss:
+            loss = 0
+        else:
+            loss = self.model(z, c)[0]
 
-        return z
+        return z, loss
+    
+    def custom_loss(self, x, target_info):
+        return 1 - F.cosine_similarity(x, target_info).mean()
 
-    def forward(self, x, target_info=None):
+    def forward(self, x, target_info=None, components=False):
         """
         Compute the textural loss.
         The textural loss shows the distance between the input image and target image in latent space.
         """
         self.target_info = target_info if target_info is not None else self.target_info
-        zx = self.get_encodings(x)
-        zy = self.get_encodings(self.target_info)
+        zx, loss_sematic = self.get_encodings(x, True)
+        zy, _ = self.get_encodings(self.target_info, True)
+        if components:
+            return self.fn(zx, zy), loss_sematic
+        
         return self.fn(zx, zy)
         
         
