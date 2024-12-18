@@ -20,7 +20,7 @@ from models import Generator, Discriminator, DiffusionTargetModel
 from tools.evaluate import evaluate_adversarial_quality
 from mist_utils import load_model_from_config
 from data_loader import create_dataloader, create_watermark
-from tools.gan_diffusion_utils import preprocess_image, generate_adversarial_image, run_diffusion_model, save_tensor_image
+from tools.gan_diffusion_utils import preprocess_image, generate_adversarial_image, run_diffusion, save_tensor_image
 
 models_path = 'models/gan/'
 
@@ -197,7 +197,7 @@ class GANAttack:
             
             # 
             prompt = 'A photo'
-            diffusion_image = run_diffusion_model(self.target_model.model, adv_image, prompt, strength=0.1)
+            diffusion_image = run_diffusion(self.target_model.model, adv_image, prompt, strength=0.3)
             
             save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
             save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
