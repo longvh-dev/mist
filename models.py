@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torchvision.transforms as transforms
 
 
@@ -209,7 +208,7 @@ class DiffusionTargetModel(nn.Module):
         return z, loss
     
     def custom_loss(self, x, target_info):
-        return torch.norm(x - target_info, p=2, dim=1).mean()
+        return 1 - F.cosine_similarity(x, target_info).mean()
 
     def forward(self, x, target_info=None, components=False):
         """
