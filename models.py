@@ -175,7 +175,7 @@ class DiffusionTargetModel(nn.Module):
 
     def __init__(self, 
                  model,
-                 condition: str,
+                 condition: str = "A photo",
                  target_info: str = None,
                  input_size = 512,
                  device = 'cuda'):
