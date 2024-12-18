@@ -37,7 +37,7 @@ def save_tensor_image(tensor, path):
     image = transforms.ToPILImage()(tensor)
     image.save(path)
 
-def preprocess_image(image, device):
+def preprocess_image(image):
     # image = Image.open(path).convert("RGB")
     w, h = image.size
     # print(f"loaded input image of size ({w}, {h}) from {path}")
@@ -45,7 +45,7 @@ def preprocess_image(image, device):
     image = image.resize((w, h), resample=PIL.Image.LANCZOS)
     image = np.array(image).astype(np.float32) / 255.0
     image = image[None].transpose(0, 3, 1, 2)
-    image = torch.from_numpy(image).to(device)
+    image = torch.from_numpy(image))
     return 2.*image - 1.
 
 
