@@ -95,6 +95,7 @@ class GANAttack:
             loss_D_fake.backward()
             
             loss_D_GAN = loss_D_real + loss_D_fake
+            torch.nn.utils.clip_grad_norm_(self.netD.parameters(), max_norm=1.0)
             self.optimizerD.step()
 
         # Optimizer G
@@ -126,6 +127,7 @@ class GANAttack:
             g_loss = loss_adv  + self.config.beta * loss_pert
 
             g_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.netG.parameters(), max_norm=1.0)
             self.optimizerG.step()
             
             g_loss_sum = self.config.alpha * loss_G_fake + loss_adv + self.config.beta * loss_pert
