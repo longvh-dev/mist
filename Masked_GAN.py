@@ -56,9 +56,9 @@ class GANAttack:
         
         self.image_size = config.image_size
         
-        self.netG = Generator(image_nc, 16).to(self.device)
+        self.netG = Generator(image_nc, 32).to(self.device)
         print(self.netG)
-        self.netD = Discriminator(image_nc, 16).to(self.device)
+        self.netD = Discriminator(image_nc, 32).to(self.device)
         print(self.netD)
         
         if self.config.checkpoint:
