@@ -78,9 +78,9 @@ class GANAttack:
         # optimizer D
         for _ in range(1):
             perturbation = self.netG(real_images, watermark)
-            # adv_images = torch.clamp(perturbation, -0.3, 0.3) + real_images
-            adv_images = perturbation + real_images
-            # adv_images = torch.clamp(adv_images, self.box_min, self.box_max)
+            adv_images = torch.clamp(perturbation, -0.3, 0.3) + real_images
+            # adv_images = perturbation + real_images
+            adv_images = torch.clamp(adv_images, self.box_min, self.box_max)
             
             self.optimizerD.zero_grad()
             
