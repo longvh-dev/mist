@@ -73,61 +73,8 @@ class Config:
     skip_grid: bool = False
     # watermark: str = "watermark.png"
 
-# def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
-#     device = next(model.parameters()).device
-#     opt = Config()
-#     # update config with kwargs
-#     for k, v in kwargs.items():
-#         setattr(opt, k, v)
-    
-#     batch_size = opt.n_samples
-    
-#     sampler = DDIMSampler(model)
-#     sampler.make_schedule(ddim_num_steps=opt.ddim_steps, ddim_eta=opt.ddim_eta, verbose=False)
-
-#     assert 0. <= strength <= 1., 'can only work with strength in [0.0, 1.0]'
-#     t_enc = int(strength * opt.ddim_steps)
-#     print(f"target t_enc is {t_enc} steps")
-
-#     init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
-#     init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
-
-#     precision_scope = autocast if opt.precision == "autocast" else nullcontext
-#     with torch.no_grad():
-#         with precision_scope("cuda"):
-#             with model.ema_scope():
-#                 tic = time.time()
-#                 for n in trange(opt.n_iter, desc="Sampling"):
-#                     uc = None
-#                     if opt.scale != 1.0:
-#                         uc = model.get_learned_conditioning(batch_size * [""])
-#                     c = model.get_learned_conditioning(batch_size * [prompt])
-
-#                     # encode (scaled latent)
-#                     z_enc = sampler.stochastic_encode(init_latent, torch.tensor([t_enc]*batch_size).to(device))
-#                     print(f"Mismatch in batch sizes: z_enc={z_enc.shape[0]}, c={c.shape[0]}")
-#                     print(f"z_enc shape: {z_enc.shape}, c shape: {c.shape}")
-#                     print(f"uc shape: {uc.shape if uc is not None else None}")
-                    
-#                     assert uc is None or uc.shape[0] == c.shape[0], "Unconditional conditioning must match batch size"
-
-#                     # decode it
-#                     samples = sampler.decode(z_enc, c, t_enc, unconditional_guidance_scale=opt.scale, unconditional_conditioning=uc,)
-
-#                     x_samples = model.decode_first_stage(samples)
-#                     x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
-#                     print(f"sampled image of size {x_samples.shape}")
-
-#                     return x_samples
-#                     # all_samples.append(x_samples)
-
-#                 toc = time.time()
-
-#     print(f"Sampling took {toc - tic:.2f} seconds")
-#     print("----------------------------------------")
-
-
 def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
+    device = next(model.parameters()).device
     opt = Config()
     # update config with kwargs
     for k, v in kwargs.items():
