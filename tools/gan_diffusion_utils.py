@@ -73,7 +73,7 @@ class Config:
     skip_grid: bool = False
     # watermark: str = "watermark.png"
 
-def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
+def run_diffusion(model, init_image, prompt, strength=0.3, **kwargs):
     device = next(model.parameters()).device
     opt = Config()
     # update config with kwargs
