@@ -45,7 +45,7 @@ def preprocess_image(image):
     image = image.resize((w, h), resample=PIL.Image.LANCZOS)
     image = np.array(image).astype(np.float32) / 255.0
     image = image[None].transpose(0, 3, 1, 2)
-    image = torch.from_numpy(image))
+    image = torch.from_numpy(image)
     return 2.*image - 1.
 
 
