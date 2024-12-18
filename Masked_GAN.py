@@ -181,24 +181,28 @@ class GANAttack:
             test_image = Image.open('../copyrights/data/imagenet/IMAGENET_CAT/n02123045_10052_n02123045.JPEG').convert('RGB')
             test_watermark = create_watermark("IMAGENET_CAT", test_image.size).convert("RGB")
             
-            # transform = transforms.Compose([
-            #     transforms.Resize((self.image_size, self.image_size)),
-            #     transforms.ToTensor(),
-            #     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            # ])
+            transform = transforms.Compose([
+                transforms.Resize((self.image_size, self.image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+            image = transform(test_image).unsqueeze(0).to(self.device)
+            watermark = transform(test_watermark).unsqueeze(0).to(self.device)
             
-            image = preprocess_image(test_image).to(self.device)
-            watermark = preprocess_image(test_watermark).to(self.device)
+            # image = preprocess_image(test_image).to(self.device)
+            # watermark = preprocess_image(test_watermark).to(self.device)
             
             adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
+            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
+            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
             
             # 
             prompt = 'A photo'
             diffusion_image = run_diffusion(self.target_model.model, adv_image, prompt, strength=0.3)
-            
-            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
-            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
-            save_tensor_image(diffusion_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion.png'))
+            for x_sample in diffusion_image:
+                x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion.png'))
+
             
             torch.cuda.empty_cache()
 
