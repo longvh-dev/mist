@@ -178,7 +178,9 @@ class GANAttack:
                 # torch.save(self.netD.state_dict(), os.path.join(self.model_path, f'netD_{epoch}.pth'))
                 
             torch.cuda.empty_cache()    
-            ### eval 
+            
+            
+            ### eval imagenet
             self.netG.eval()
             # test_image = Image.open('test/sample.png').convert('RGB')
             test_image = Image.open('../copyrights/data/imagenet/IMAGENET_CAT/n02123045_10052_n02123045.JPEG').convert('RGB')
@@ -196,17 +198,42 @@ class GANAttack:
             # watermark = preprocess_image(test_watermark).to(self.device)
             
             adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
-            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv.png'))
-            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp.png'))
+            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_imagenet.png'))
+            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp_imagenet.png'))
             
-            # 
             prompt = 'A photo'
-            diffusion_image = run_diffusion(self.target_model.model, adv_image, prompt, strength=0.3)
+            diffusion_image = run_diffusion(self.target_model.model, adv_image, prompt, strength=0.1)
             for x_sample in diffusion_image:
                 x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion.png'))
+                Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion_imagenet.png'))
 
+            ### eval wikiart
+            self.netG.eval()
+            # test_image = Image.open('test/sample.png').convert('RGB')
+            test_image = Image.open('../copyrights/data/wikiart/Impressionism/alfred-sisley_moret-sur-loing-1885.jpg').convert('RGB')
+            test_watermark = create_watermark("alfred sisley", test_image.size).convert("RGB")
             
+            transform = transforms.Compose([
+                transforms.Resize((self.image_size, self.image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+            image = transform(test_image).unsqueeze(0).to(self.device)
+            watermark = transform(test_watermark).unsqueeze(0).to(self.device)
+            
+            # image = preprocess_image(test_image).to(self.device)
+            # watermark = preprocess_image(test_watermark).to(self.device)
+            
+            adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
+            save_tensor_image(adv_image, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_wikiart.png'))
+            save_tensor_image(adv_image_clamp, os.path.join("./outputs/adv/", f'image_epoch_{epoch}_adv_clamp_wikiart.png'))
+            
+            prompt = 'A painting'
+            diffusion_image = run_diffusion(self.target_model.model, adv_image, prompt, strength=0.1)
+            for x_sample in diffusion_image:
+                x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join("./outputs/adv/", f'image_epoch_{epoch}_diffusion_wikiart.png'))
+                    
             torch.cuda.empty_cache()
 
 
