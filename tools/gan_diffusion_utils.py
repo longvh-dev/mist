@@ -73,100 +73,94 @@ class Config:
     skip_grid: bool = False
     # watermark: str = "watermark.png"
 
+# def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
+#     device = next(model.parameters()).device
+#     opt = Config()
+#     # update config with kwargs
+#     for k, v in kwargs.items():
+#         setattr(opt, k, v)
+    
+#     batch_size = opt.n_samples
+    
+#     sampler = DDIMSampler(model)
+#     sampler.make_schedule(ddim_num_steps=opt.ddim_steps, ddim_eta=opt.ddim_eta, verbose=False)
+
+#     assert 0. <= strength <= 1., 'can only work with strength in [0.0, 1.0]'
+#     t_enc = int(strength * opt.ddim_steps)
+#     print(f"target t_enc is {t_enc} steps")
+
+#     init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
+#     init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
+
+#     precision_scope = autocast if opt.precision == "autocast" else nullcontext
+#     with torch.no_grad():
+#         with precision_scope("cuda"):
+#             with model.ema_scope():
+#                 tic = time.time()
+#                 for n in trange(opt.n_iter, desc="Sampling"):
+#                     uc = None
+#                     if opt.scale != 1.0:
+#                         uc = model.get_learned_conditioning(batch_size * [""])
+#                     c = model.get_learned_conditioning(batch_size * [prompt])
+
+#                     # encode (scaled latent)
+#                     z_enc = sampler.stochastic_encode(init_latent, torch.tensor([t_enc]*batch_size).to(device))
+#                     print(f"Mismatch in batch sizes: z_enc={z_enc.shape[0]}, c={c.shape[0]}")
+#                     print(f"z_enc shape: {z_enc.shape}, c shape: {c.shape}")
+#                     print(f"uc shape: {uc.shape if uc is not None else None}")
+                    
+#                     assert uc is None or uc.shape[0] == c.shape[0], "Unconditional conditioning must match batch size"
+
+#                     # decode it
+#                     samples = sampler.decode(z_enc, c, t_enc, unconditional_guidance_scale=opt.scale, unconditional_conditioning=uc,)
+
+#                     x_samples = model.decode_first_stage(samples)
+#                     x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
+#                     print(f"sampled image of size {x_samples.shape}")
+
+#                     return x_samples
+#                     # all_samples.append(x_samples)
+
+#                 toc = time.time()
+
+#     print(f"Sampling took {toc - tic:.2f} seconds")
+#     print("----------------------------------------")
+
+
 def run_diffusion(model, prompt, init_image, strength=0.3, ddim_steps=50, **kwargs):
-    device = next(model.parameters()).device
     opt = Config()
-    # update config with kwargs
     for k, v in kwargs.items():
         setattr(opt, k, v)
-    
-    batch_size = opt.n_samples
-    
+        
+    print(f"Running diffusion with config: {opt}")
+    seed_everything(opt.seed)
+    device = next(model.parameters()).device
 
     sampler = DDIMSampler(model)
-    sampler.make_schedule(ddim_num_steps=opt.ddim_steps, ddim_eta=opt.ddim_eta, verbose=False)
 
-    assert 0. <= strength <= 1., 'can only work with strength in [0.0, 1.0]'
-    t_enc = int(strength * opt.ddim_steps)
-    print(f"target t_enc is {t_enc} steps")
-
-    init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
-    init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
-
-    precision_scope = autocast if opt.precision == "autocast" else nullcontext
-    with torch.no_grad():
-        with precision_scope("cuda"):
-            with model.ema_scope():
-                tic = time.time()
-                for n in trange(opt.n_iter, desc="Sampling"):
-                    uc = None
-                    if opt.scale != 1.0:
-                        uc = model.get_learned_conditioning(batch_size * [""])
-                    c = model.get_learned_conditioning(batch_size * [prompt])
-
-                    # encode (scaled latent)
-                    z_enc = sampler.stochastic_encode(init_latent, torch.tensor([t_enc]*batch_size).to(device))
-                    print(f"Mismatch in batch sizes: z_enc={z_enc.shape[0]}, c={c.shape[0]}")
-                    print(f"z_enc shape: {z_enc.shape}, c shape: {c.shape}")
-                    print(f"uc shape: {uc.shape if uc is not None else None}")
-                    
-                    assert uc is None or uc.shape[0] == c.shape[0], "Unconditional conditioning must match batch size"
-
-                    # decode it
-                    samples = sampler.decode(z_enc, c, t_enc, unconditional_guidance_scale=opt.scale, unconditional_conditioning=uc,)
-
-                    x_samples = model.decode_first_stage(samples)
-                    x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
-                    print(f"sampled image of size {x_samples.shape}")
-
-                    return x_samples
-                    # all_samples.append(x_samples)
-
-                toc = time.time()
-
-    print(f"Sampling took {toc - tic:.2f} seconds")
-    print("----------------------------------------")
-
-
-def main():
-    opt = Config()
-    seed_everything(opt.seed)
-
-    config = OmegaConf.load(f"{opt.config}")
-    model = load_model_from_config(config, f"{opt.ckpt}")
-
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    model = model.to(device)
-
-    if opt.plms:
-        raise NotImplementedError("PLMS sampler not (yet) supported")
-        sampler = PLMSSampler(model)
-    else:
-        sampler = DDIMSampler(model)
-
-    os.makedirs(opt.outdir, exist_ok=True)
-    outpath = opt.outdir
+    # os.makedirs(opt.outdir, exist_ok=True)
+    # outpath = opt.outdir
 
     batch_size = opt.n_samples
     n_rows = opt.n_rows if opt.n_rows > 0 else batch_size
     if not opt.from_file:
-        prompt = opt.prompt
+        prompt = prompt
         assert prompt is not None
         data = [batch_size * [prompt]]
 
-    else:
-        print(f"reading prompts from {opt.from_file}")
-        with open(opt.from_file, "r") as f:
-            data = f.read().splitlines()
-            data = list(chunk(data, batch_size))
+    # else:
+    #     print(f"reading prompts from {opt.from_file}")
+    #     with open(opt.from_file, "r") as f:
+    #         data = f.read().splitlines()
+    #         data = list(chunk(data, batch_size))
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
     base_count = len(os.listdir(sample_path))
     grid_count = len(os.listdir(outpath)) - 1
 
-    assert os.path.isfile(opt.init_img)
-    init_image = load_img(opt.init_img).to(device)
+    # assert os.path.isfile(opt.init_img)
+    # init_image = load_img(opt.init_img).to(device)
     init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
     init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
 
@@ -253,5 +247,5 @@ def load_img(path):
     image = image[None].transpose(0, 3, 1, 2)
     image = torch.from_numpy(image)
     return 2.*image - 1.
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
