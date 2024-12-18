@@ -181,14 +181,17 @@ class GANAttack:
             test_image = Image.open('../copyrights/data/imagenet/IMAGENET_CAT/n02123045_10052_n02123045.JPEG').convert('RGB')
             test_watermark = create_watermark("IMAGENET_CAT", test_image.size).convert("RGB")
             
-            transform = transforms.Compose([
-                transforms.Resize((self.image_size, self.image_size)),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            ])
+            # transform = transforms.Compose([
+            #     transforms.Resize((self.image_size, self.image_size)),
+            #     transforms.ToTensor(),
+            #     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            # ])
             
-            image = preprocess_image(test_image, transform, self.device)
-            watermark = preprocess_image(test_watermark, transform, self.device)
+            # image = preprocess_image(test_image, transform, self.device)
+            # watermark = preprocess_image(test_watermark, transform, self.device)
+
+            image = preprocess_image(test_image, self.device)
+            watermark = preprocess_image(test_watermark, self.device)
             
             adv_image, adv_image_clamp = generate_adversarial_image(self.netG, image, watermark, self.box_min, self.box_max)
             
