@@ -86,12 +86,12 @@ class GANAttack:
             
             pred_real = self.netD(real_images)
             real_label = torch.ones_like(pred_real, device=self.device)
-            loss_D_real = nn.MSELoss(reduction='mean')(pred_real, real_label)
+            loss_D_real = F.binary_cross_entropy(pred_real, real_label)
             loss_D_real.backward()
             
             pred_fake = self.netD(adv_images.detach())
             fake_label = torch.zeros_like(pred_fake, device=self.device)
-            loss_D_fake = nn.MSELoss(reduction='mean')(pred_fake, fake_label)
+            loss_D_fake = F.binary_cross_entropy(pred_fake, fake_label)
             loss_D_fake.backward()
             
             loss_D_GAN = loss_D_real + loss_D_fake
@@ -103,7 +103,7 @@ class GANAttack:
             self.optimizerG.zero_grad()
             
             pred_fake = self.netD(adv_images)
-            loss_G_fake = nn.MSELoss(reduction='mean')(pred_fake, real_label)
+            loss_G_fake = F.binary_cross_entropy(pred_fake, torch.ones_like(pred_fake, device=self.device))
             loss_G_fake.backward(retain_graph=True)
 
             # Print gradients for debugging
