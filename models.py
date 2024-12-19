@@ -209,7 +209,7 @@ class DiffusionTargetModel(nn.Module):
         return z, loss
     
     def custom_loss(self, x, target_info):
-        return 1 - F.cosine_similarity(x, target_info).mean()
+        return torch.norm(x - target_info, p=2).mean()
 
     def forward(self, x, target_info=None, components=False):
         """
