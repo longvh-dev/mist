@@ -272,15 +272,15 @@ if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(), base)
     config = OmegaConf.load(config_path)
 
-    # ckpt_path = os.path.join(os.getcwd(), ckpt)
-    # model = load_model_from_config(config, ckpt_path).to(device)
-    # # print(model)
+    ckpt_path = os.path.join(os.getcwd(), ckpt)
+    model = load_model_from_config(config, ckpt_path).to(device)
+    # print(model)
 
-    # fn = nn.MSELoss(reduction="sum")
+    fn = nn.MSELoss(reduction="sum")
 
-    # # input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
-    # net = DiffusionTargetModel(model, device=device)
-    # net.eval()
+    # input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
+    net = DiffusionTargetModel(model, device=device)
+    net.eval()
     ### 
     
     train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
