@@ -287,7 +287,7 @@ if __name__ == "__main__":
     eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
     print(len(train_dataloaders), len(eval_dataloaders))
     
-    # gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
-    # gan_attack.train(train_dataloaders, eval_dataloaders)
+    gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
+    gan_attack.train(train_dataloaders, eval_dataloaders)
     
     
