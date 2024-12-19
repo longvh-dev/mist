@@ -56,9 +56,9 @@ class GANAttack:
         
         self.image_size = config.image_size
         
-        self.netG = Generator(image_nc, 32).to(self.device)
+        self.netG = Generator(image_nc, 16).to(self.device)
         print(self.netG)
-        self.netD = Discriminator(image_nc, 32).to(self.device)
+        self.netD = Discriminator(image_nc, 16).to(self.device)
         print(self.netD)
         
         if self.config.checkpoint:
@@ -272,21 +272,22 @@ if __name__ == "__main__":
     config_path = os.path.join(os.getcwd(), base)
     config = OmegaConf.load(config_path)
 
-    ckpt_path = os.path.join(os.getcwd(), ckpt)
-    model = load_model_from_config(config, ckpt_path).to(device)
-    # print(model)
+    # ckpt_path = os.path.join(os.getcwd(), ckpt)
+    # model = load_model_from_config(config, ckpt_path).to(device)
+    # # print(model)
 
-    fn = nn.MSELoss(reduction="sum")
+    # fn = nn.MSELoss(reduction="sum")
 
-    # input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
-    net = DiffusionTargetModel(model, device=device)
-    net.eval()
+    # # input_prompt = [imagenet_templates_small_object[0] for i in range(1)]
+    # net = DiffusionTargetModel(model, device=device)
+    # net.eval()
     ### 
     
     train_dataloaders, _ = create_dataloader(args.train_dir, args.train_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
     eval_dataloaders, _ = create_dataloader(args.eval_dir, args.eval_classes, batch_size=args.batch_size, image_size=(args.image_size, args.image_size))
+    print(len(train_dataloaders), len(eval_dataloaders))
     
-    gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
-    gan_attack.train(train_dataloaders, eval_dataloaders)
+    # gan_attack = GANAttack(net, 3, device, 0.0, 1.0, args)
+    # gan_attack.train(train_dataloaders, eval_dataloaders)
     
     
